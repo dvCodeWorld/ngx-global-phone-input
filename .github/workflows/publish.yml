@@ -1,0 +1,99 @@
+name: Publish to NPM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.1.0)'
+        required: true
+        default: '1.1.0'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: ng test global-phone-input --watch=false --browsers=ChromeHeadless
+        
+      - name: Build library
+        run: ng build global-phone-input
+        
+      - name: Verify build output
+        run: |
+          ls -la dist/global-phone-input/
+          cat dist/global-phone-input/package.json | grep version
+          
+      - name: Publish to NPM
+        run: |
+          cd dist/global-phone-input
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create GitHub Release (if manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release v${{ github.event.inputs.version }}
+          body: |
+            ## What's Changed in v${{ github.event.inputs.version }}
+            
+            ### 🆕 New Features
+            - Configurable caching with `enableCache` parameter
+            - Default country code with `defaultCountryCode` parameter
+            - 249 high-quality flag images included
+            - Enhanced documentation and examples
+            
+            ### 💥 Breaking Changes
+            - Removed hardcoded default country (was India +91)
+            - `defaultCountryCode` only accepts dial codes with '+' format
+            - No longer supports country codes ('IN') or names ('India')
+            
+            ### 📦 Installation
+            ```bash
+            npm install ngx-global-phone-input@${{ github.event.inputs.version }} google-libphonenumber
+            ```
+            
+            ### 🔧 Migration Guide
+            **Before:**
+            ```typescript
+            <global-phone-input formControlName="phone">
+            ```
+            
+            **After:**
+            ```typescript
+            <global-phone-input 
+              defaultCountryCode="+91"
+              [enableCache]="true"
+              formControlName="phone">
+            ```
+            
+            See [CHANGELOG.md](https://github.com/dvCodeWorld/ngx-global-phone-input/blob/main/CHANGELOG.md) for full details.
+          draft: false
+          prerelease: false

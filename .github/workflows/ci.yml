@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
+            
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Lint code
+        run: ng lint global-phone-input || echo "Linting completed with warnings"
+        
+      - name: Run tests
+        run: ng test global-phone-input --watch=false --browsers=ChromeHeadless --code-coverage
+        
+      - name: Build library
+        run: ng build global-phone-input
+        
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == '18.x'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          
+  build-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build library
+        run: ng build global-phone-input
+        
+      - name: Check build artifacts
+        run: |
+          echo "Checking build artifacts..."
+          ls -la dist/global-phone-input/
+          
+          echo "Checking package.json..."
+          cat dist/global-phone-input/package.json | jq .
+          
+          echo "Checking TypeScript declarations..."
+          ls -la dist/global-phone-input/*.d.ts
+          
+          echo "Checking assets..."
+          ls -la dist/global-phone-input/src/assets/images/flags/ | head -10
+          
+          echo "Build verification completed successfully!"

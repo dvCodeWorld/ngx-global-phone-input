@@ -1,0 +1,112 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.1.0)'
+        required: true
+        type: string
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: ng test global-phone-input --watch=false --browsers=ChromeHeadless
+        
+      - name: Build library
+        run: ng build global-phone-input
+        
+      - name: Update version in package.json
+        run: |
+          cd projects/global-phone-input
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          
+      - name: Commit version update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add projects/global-phone-input/package.json
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+          
+      - name: Create Git tag
+        run: |
+          git tag v${{ github.event.inputs.version }}
+          git push origin v${{ github.event.inputs.version }}
+          git push origin main
+          
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed in v${{ github.event.inputs.version }}" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          if [ "${{ github.event.inputs.release_type }}" = "major" ]; then
+            echo "### 🚀 Major Release" >> RELEASE_NOTES.md
+            echo "This is a major release with breaking changes." >> RELEASE_NOTES.md
+          elif [ "${{ github.event.inputs.release_type }}" = "minor" ]; then
+            echo "### ✨ New Features" >> RELEASE_NOTES.md
+            echo "This release includes new features and improvements." >> RELEASE_NOTES.md
+          else
+            echo "### 🐛 Bug Fixes" >> RELEASE_NOTES.md
+            echo "This release includes bug fixes and improvements." >> RELEASE_NOTES.md
+          fi
+          
+          echo "" >> RELEASE_NOTES.md
+          echo "### 📦 Installation" >> RELEASE_NOTES.md
+          echo "\`\`\`bash" >> RELEASE_NOTES.md
+          echo "npm install ngx-global-phone-input@${{ github.event.inputs.version }} google-libphonenumber" >> RELEASE_NOTES.md
+          echo "\`\`\`" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### 📚 Documentation" >> RELEASE_NOTES.md
+          echo "- [README](https://github.com/dvCodeWorld/ngx-global-phone-input#readme)" >> RELEASE_NOTES.md
+          echo "- [CHANGELOG](https://github.com/dvCodeWorld/ngx-global-phone-input/blob/main/CHANGELOG.md)" >> RELEASE_NOTES.md
+          echo "- [API Reference](https://github.com/dvCodeWorld/ngx-global-phone-input#-api-reference)" >> RELEASE_NOTES.md
+          
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release v${{ github.event.inputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-v${{ github.event.inputs.version }}
+          path: |
+            dist/global-phone-input/
+            !dist/global-phone-input/node_modules/
