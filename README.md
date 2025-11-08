@@ -15,7 +15,7 @@ A comprehensive Angular library for international phone number input with countr
 - 🔧 **Reactive Forms** - Full support for Angular Reactive Forms with ControlValueAccessor
 - 🚀 **TypeScript** - Written in TypeScript with full type definitions
 - 📦 **Standalone Component** - Works with Angular standalone components
-- 🎭 **Flexible Display** - Support for both emoji and image flags
+- 🎭 **Flexible Display** - Support for both emoji and image flags (249 country flag images included)
 - 🔄 **Format Options** - Multiple phone number format outputs (E164, National, International)
 - ⚡ **Performance** - Optimized with caching and efficient country detection
 - 🧪 **Well Tested** - Comprehensive unit test coverage
@@ -252,6 +252,28 @@ export class PresetPhoneComponent implements OnInit {
   }
 }
 ```
+
+## 🎭 Flag Display Options
+
+The library supports both emoji flags and image flags:
+
+### Emoji Flags (Default)
+```typescript
+<global-phone-input
+  [useImageFlags]="false"  // Default
+  formControlName="phoneNumber">
+</global-phone-input>
+```
+
+### Image Flags
+```typescript
+<global-phone-input
+  [useImageFlags]="true"
+  formControlName="phoneNumber">
+</global-phone-input>
+```
+
+The library includes **249 high-quality flag images** (PNG format, optimized for web) for all supported countries. Images are automatically loaded from the library's assets and fall back to emoji flags if an image is not found.
 
 ## 🎨 Styling
 
