@@ -41,7 +41,7 @@ export class GlobalPhoneInputService {
     private readonly API_URL = 'https://api.db-ip.com/v2/free/self';
     
     /** Cache key for localStorage */
-    private readonly CACHE_KEY = 'giddh_country_data_cache';
+    private readonly CACHE_KEY = 'ngx_global_phone_input_country_cache';
     
     /** Cache duration in milliseconds (30 days) */
     private readonly CACHE_DURATION = 30 * 24 * 60 * 60 * 1000;
@@ -57,12 +57,13 @@ export class GlobalPhoneInputService {
     /**
      * Gets geolocation data from cache or API with automatic caching
      * 
+     * @param {boolean} useCache - Whether to use caching (default: true)
      * @returns {Observable<GeolocationResponse | null>} Observable with geolocation data or null if failed
      * @memberof GlobalPhoneInputService
      */
-    public getCountryData(): Observable<GeolocationResponse | null> {
-        // Check cache first
-        if (this.hasValidCache()) {
+    public getCountryData(useCache: boolean = true): Observable<GeolocationResponse | null> {
+        // Check cache first only if caching is enabled
+        if (useCache && this.hasValidCache()) {
             const cachedData = this.getCachedData();
             if (cachedData) {
                 // Use setTimeout to make it async even for cached data
@@ -75,10 +76,10 @@ export class GlobalPhoneInputService {
             }
         }
 
-        // Make API call if no valid cache
+        // Make API call if no valid cache or caching is disabled
         return this.http.get<GeolocationResponse>(this.API_URL).pipe(
             tap((data) => {
-                if (data) {
+                if (data && useCache) {
                     this.setCachedData(data);
                 }
             }),

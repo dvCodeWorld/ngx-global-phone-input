@@ -171,9 +171,6 @@ export class GlobalPhoneInputComponent implements OnInit, OnDestroy, ControlValu
     /** Whether the field is disabled */
     @Input() public disabled: boolean = false;
     
-    /** Default fallback country code (India) */
-    private readonly DEFAULT_COUNTRY_CODE: string = '+91';
-    
     /** Placeholder text for the mobile input field */
     @Input() public placeholder?: string;
     
@@ -185,6 +182,12 @@ export class GlobalPhoneInputComponent implements OnInit, OnDestroy, ControlValu
     
     /** Whether to use image flags instead of emoji flags */
     @Input() public useImageFlags: boolean = false;
+    
+    /** Whether to enable country detection caching */
+    @Input() public enableCache: boolean = true;
+    
+    /** Default country dial code (e.g., '+91', '+1', '+44') */
+    @Input() public defaultCountryCode?: string;
     
     /** Event emitted when country changes */
     @Output() public countryChanged = new EventEmitter<Country>();
@@ -331,7 +334,7 @@ export class GlobalPhoneInputComponent implements OnInit, OnDestroy, ControlValu
      * @memberof GlobalPhoneInputComponent
      */
     private performCountryDetection(): void {
-        this.globalPhoneInputService.getCountryData()
+        this.globalPhoneInputService.getCountryData(this.enableCache)
             .pipe(takeUntil(this.destroyed$))
             .subscribe(location => {
                 // Only perform country detection if mobile number field is empty
@@ -347,21 +350,43 @@ export class GlobalPhoneInputComponent implements OnInit, OnDestroy, ControlValu
                         }
                     }
                 }
+                
+                // Fallback to default country if detection fails or is disabled
+                this.setDefaultCountry();
             });
     }
 
     /**
+     * Sets the default country based on dial code input parameter
+     *
+     * @private
+     * @memberof GlobalPhoneInputComponent
+     */
+    private setDefaultCountry(): void {
+        let defaultCountry: Country | undefined;
+
+        if (this.defaultCountryCode && this.defaultCountryCode.startsWith('+')) {
+            // Find country by dial code
+            defaultCountry = this.countries.find(country => country.dialCode === this.defaultCountryCode);
+        }
+
+        if (defaultCountry) {
+            this.selectedCountry = defaultCountry;
+            this.countryControl.setValue(defaultCountry, { emitEvent: false });
+            this.updateValidators();
+        }
+    }
+
+
+    /**
      * Initializes the default country selection to India (+91)
+     * @deprecated Use setDefaultCountry() instead
      *
      * @private
      * @memberof GlobalPhoneInputComponent
      */
     private initializeDefaultCountry(): void {
-        const defaultCountry = this.countries.find(country => country.dialCode === this.DEFAULT_COUNTRY_CODE);
-        if (defaultCountry) {
-            this.selectedCountry = defaultCountry;
-            this.countryControl.setValue(defaultCountry);
-        }
+        this.setDefaultCountry();
     }
 
     /**

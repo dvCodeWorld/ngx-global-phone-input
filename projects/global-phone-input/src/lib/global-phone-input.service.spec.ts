@@ -58,7 +58,7 @@ describe('GlobalPhoneInputService', () => {
         timestamp: Date.now(),
         expiryDate: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days from now
       };
-      localStorage.setItem('giddh_country_data_cache', JSON.stringify(cachedData));
+      localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(cachedData));
 
       service.getCountryData().subscribe(data => {
         expect(data).toEqual(mockGeolocationResponse);
@@ -76,7 +76,7 @@ describe('GlobalPhoneInputService', () => {
         timestamp: Date.now() - (31 * 24 * 60 * 60 * 1000), // 31 days ago
         expiryDate: Date.now() - (24 * 60 * 60 * 1000) // 1 day ago (expired)
       };
-      localStorage.setItem('giddh_country_data_cache', JSON.stringify(expiredCachedData));
+      localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(expiredCachedData));
 
       service.getCountryData().subscribe(data => {
         expect(data).toEqual(mockGeolocationResponse);
@@ -99,7 +99,7 @@ describe('GlobalPhoneInputService', () => {
     it('should cache successful API responses', () => {
       service.getCountryData().subscribe(() => {
         // Check if data was cached
-        const cachedData = localStorage.getItem('giddh_country_data_cache');
+        const cachedData = localStorage.getItem('ngx_global_phone_input_country_cache');
         expect(cachedData).toBeTruthy();
         
         const parsed = JSON.parse(cachedData!);
@@ -165,7 +165,7 @@ describe('GlobalPhoneInputService', () => {
         timestamp: Date.now(),
         expiryDate: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days from now
       };
-      localStorage.setItem('giddh_country_data_cache', JSON.stringify(cachedData));
+      localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(cachedData));
 
       const hasValidCache = service.hasValidCache();
       expect(hasValidCache).toBeTruthy();
@@ -177,7 +177,7 @@ describe('GlobalPhoneInputService', () => {
         timestamp: Date.now() - (31 * 24 * 60 * 60 * 1000),
         expiryDate: Date.now() - (24 * 60 * 60 * 1000) // Expired
       };
-      localStorage.setItem('giddh_country_data_cache', JSON.stringify(expiredCachedData));
+      localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(expiredCachedData));
 
       const hasValidCache = service.hasValidCache();
       expect(hasValidCache).toBeFalsy();
@@ -189,7 +189,7 @@ describe('GlobalPhoneInputService', () => {
     });
 
     it('should return false when cache is corrupted', () => {
-      localStorage.setItem('giddh_country_data_cache', 'invalid-json');
+      localStorage.setItem('ngx_global_phone_input_country_cache', 'invalid-json');
 
       const hasValidCache = service.hasValidCache();
       expect(hasValidCache).toBeFalsy();
@@ -200,7 +200,7 @@ describe('GlobalPhoneInputService', () => {
         data: mockGeolocationResponse
         // Missing timestamp and expiryDate
       };
-      localStorage.setItem('giddh_country_data_cache', JSON.stringify(invalidCachedData));
+      localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(invalidCachedData));
 
       const hasValidCache = service.hasValidCache();
       expect(hasValidCache).toBeFalsy();
@@ -210,11 +210,11 @@ describe('GlobalPhoneInputService', () => {
   describe('clearCache', () => {
     it('should remove cache from localStorage', () => {
       // Set up cache
-      localStorage.setItem('giddh_country_data_cache', JSON.stringify(mockGeolocationResponse));
+      localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(mockGeolocationResponse));
       
       service.clearCache();
       
-      const cachedData = localStorage.getItem('giddh_country_data_cache');
+      const cachedData = localStorage.getItem('ngx_global_phone_input_country_cache');
       expect(cachedData).toBeNull();
     });
 
@@ -241,14 +241,14 @@ describe('GlobalPhoneInputService', () => {
           timestamp: Date.now(),
           expiryDate: Date.now() + (30 * 24 * 60 * 60 * 1000)
         };
-        localStorage.setItem('giddh_country_data_cache', JSON.stringify(expectedData));
+        localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(expectedData));
 
         const cachedData = service['getCachedData']();
         expect(cachedData).toEqual(expectedData);
       });
 
       it('should clear cache and return null for corrupted data', () => {
-        localStorage.setItem('giddh_country_data_cache', 'invalid-json');
+        localStorage.setItem('ngx_global_phone_input_country_cache', 'invalid-json');
         spyOn(service, 'clearCache');
         spyOn(console, 'warn'); // Spy on console.warn to prevent actual logging
 
@@ -261,7 +261,7 @@ describe('GlobalPhoneInputService', () => {
 
       it('should clear cache and return null for invalid structure', () => {
         const invalidData = { data: mockGeolocationResponse }; // Missing required fields
-        localStorage.setItem('giddh_country_data_cache', JSON.stringify(invalidData));
+        localStorage.setItem('ngx_global_phone_input_country_cache', JSON.stringify(invalidData));
         spyOn(service, 'clearCache');
         spyOn(console, 'warn'); // Spy on console.warn to prevent actual logging
 
@@ -279,7 +279,7 @@ describe('GlobalPhoneInputService', () => {
         service['setCachedData'](mockGeolocationResponse);
         
         const afterTime = Date.now();
-        const cachedData = localStorage.getItem('giddh_country_data_cache');
+        const cachedData = localStorage.getItem('ngx_global_phone_input_country_cache');
         expect(cachedData).toBeTruthy();
         
         const parsed = JSON.parse(cachedData!);
@@ -328,7 +328,7 @@ describe('GlobalPhoneInputService', () => {
       
       service['setCachedData'](mockGeolocationResponse);
       
-      const cachedData = localStorage.getItem('giddh_country_data_cache');
+      const cachedData = localStorage.getItem('ngx_global_phone_input_country_cache');
       const parsed = JSON.parse(cachedData!);
       
       const expectedExpiryTime = beforeTime + (30 * 24 * 60 * 60 * 1000);

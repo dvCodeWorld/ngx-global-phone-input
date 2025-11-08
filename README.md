@@ -90,6 +90,8 @@ In your `styles.css`:
 | `id` | `string` | `undefined` | Unique identifier for the component |
 | `name` | `string` | `undefined` | Name attribute for the input |
 | `useImageFlags` | `boolean` | `false` | Use image flags instead of emoji flags |
+| `enableCache` | `boolean` | `true` | Enable country detection caching |
+| `defaultCountryCode` | `string` | `undefined` | Default country dial code (e.g., '+91', '+1', '+44') |
 
 ### Component Outputs
 
@@ -253,6 +255,47 @@ export class PresetPhoneComponent implements OnInit {
 }
 ```
 
+### Configuring Default Country and Caching
+
+```typescript
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-configured-phone',
+  template: `
+    <!-- US as default with caching enabled -->
+    <global-phone-input
+      [formControl]="phoneControl1"
+      label="Phone Number"
+      defaultCountryCode="+1"
+      [enableCache]="true">
+    </global-phone-input>
+    
+    <!-- UK as default with caching disabled -->
+    <global-phone-input
+      [formControl]="phoneControl2"
+      label="Phone Number"
+      defaultCountryCode="+44"
+      [enableCache]="false">
+    </global-phone-input>
+    
+    <!-- India as default with caching enabled -->
+    <global-phone-input
+      [formControl]="phoneControl3"
+      label="Phone Number"
+      defaultCountryCode="+91"
+      [enableCache]="true">
+    </global-phone-input>
+  `
+})
+export class ConfiguredPhoneComponent {
+  phoneControl1 = new FormControl('');
+  phoneControl2 = new FormControl('');
+  phoneControl3 = new FormControl('');
+}
+```
+
 ## 🎭 Flag Display Options
 
 The library supports both emoji flags and image flags:
@@ -322,6 +365,42 @@ The library includes all countries with:
 
 ## 🔧 Configuration
 
+### Default Country Configuration
+
+You can set a default country using dial code format:
+
+```typescript
+// Using dial code (required format)
+defaultCountryCode="+91"  // India
+defaultCountryCode="+1"   // United States
+defaultCountryCode="+44"  // United Kingdom
+defaultCountryCode="+49"  // Germany
+```
+
+**Note:** Only dial codes with `+` prefix are accepted (e.g., `+91`, `+1`, `+44`).
+
+### Caching Configuration
+
+The component supports configurable caching for country detection:
+
+```typescript
+// Enable caching (default)
+[enableCache]="true"
+
+// Disable caching - will make fresh API calls each time
+[enableCache]="false"
+```
+
+**Cache Benefits:**
+- ✅ Faster subsequent loads (30-day cache)
+- ✅ Reduced API calls
+- ✅ Better offline experience
+
+**Disable Cache When:**
+- ❌ You need real-time location detection
+- ❌ Privacy concerns about storing location data
+- ❌ Testing different locations
+
 ### Geolocation Service
 
 The component automatically detects the user's country using IP geolocation. The service caches results for 30 days to improve performance.
@@ -337,13 +416,14 @@ clearCache() {
 
 ### Custom Country Detection
 
-You can disable auto-detection by setting an initial value:
+You can set a default country and control caching:
 
 ```typescript
-ngOnInit() {
-  // This will prevent auto-detection
-  this.phoneControl.setValue('+1'); // Sets US as default
-}
+<global-phone-input
+  defaultCountryCode="+1"
+  [enableCache]="false"
+  formControlName="phoneNumber">
+</global-phone-input>
 ```
 
 ## 🧪 Testing
