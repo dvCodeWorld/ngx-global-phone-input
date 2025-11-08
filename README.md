@@ -396,7 +396,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-If you have any questions or issues, please [open an issue](https://github.com/yourusername/ngx-global-phone-input/issues) on GitHub.
+If you have any questions or issues, please [open an issue](https://github.com/your-username/ngx-global-phone-input/issues) on GitHub.
 
 ---
 

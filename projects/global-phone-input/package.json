@@ -4,13 +4,13 @@
   "description": "A comprehensive Angular library for international phone number input with country selection, validation using Google's libphonenumber, auto-detection, and Material Design integration.",
   "author": "ngx-global-phone-input",
   "license": "MIT",
-  "homepage": "https://github.com/yourusername/ngx-global-phone-input#readme",
+  "homepage": "https://github.com/dvCodeWorld/ngx-global-phone-input#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ngx-global-phone-input.git"
+    "url": "https://github.com/dvCodeWorld/ngx-global-phone-input.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/ngx-global-phone-input/issues"
+    "url": "https://github.com/dvCodeWorld/ngx-global-phone-input/issues"
   },
   "keywords": [
     "angular",
